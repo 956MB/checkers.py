@@ -27,6 +27,8 @@ $ ./play.py -d .1 -s      # Simulate random moves game with delay of .1, and ran
 
 # LOOKS:
 
-<img src="images/blue.png" width="285"/> <img src="images/yellow.png" width="285"/> <img src="images/purple.png" width="285"/>
+<img src="images/blue.png" width="434"/> <img src="images/yellow.png" width="434"/>
 
-<img src="images/cyan.png" width="285"/> <img src="images/lightgrey.png" width="285"/>
+<img src="images/green.png" width="434"/> <img src="images/purple.png" width="434"/>
+
+<img src="images/cyan.png" width="434"/> <img src="images/lightgrey.png" width="434"/>
