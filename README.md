@@ -15,7 +15,7 @@ optional arguments:
   -m, --moves           disable showing of available moves in game
 ```
 
-Play against random moves with board color blue:
+Examples:
 
 ```shell
 $ ./play.py -r -c 44      # Play against random moves with board color blue.
