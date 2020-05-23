@@ -8,11 +8,11 @@ import os, csv, sys, random, time
 # Comments should probably be put in eventually as a well. It gets a bit confusing in parts.
 
 class Game(object):
-    def __init__(self, mode=True, starter=1, color=44, show=32, delay=0):
-        self.delay, self.starting_color = delay, starter
+    def __init__(self, mode=True, starter=1, color=44, show=32, delay=0, show_extra=False):
+        self.delay, self.starting_color, self.show_extra = delay, starter, show_extra
         self.moves, self.aval_moves, self.current_move, self.current_turn = [[]], [], [], starter
+        self.red_score, self.black_score, self.red_moves, self.black_moves, self.red_kings, self.black_kings = 0, 0, 0, 0, 0, 0
         self.previous, self.color, self.show_moves = [], color, show
-        self.red_score, self.black_score = 0, 0
         self.swap, self.winner = True, False
         self.board = self.populate_board()
 
@@ -23,17 +23,12 @@ class Game(object):
 
         self.pieces = { 0:" {} \033[0m", 1:"\033[91m {} \033[0m", -1:"\033[30m {} \033[0m", 2:" {} \033[0m", 3:"\033[{}m {} \033[0m", 4:"\033[{}m {} \033[0m", 5:"\033[91m {} \033[0m", 6:"\033[30m {} \033[0m" }
         self.turns = {1:"\033[{}m\033[91m ● \033[0m", -1:"\033[{}m\033[30m ● \033[0m"}
-        # self.types = {0:"BLANK", 1:"RED", 5:"BLACK", 6:"RED_KING", -1.5:"BLACK_KING", 2:"SPACE", 3:"SELECTED", 4:"AVAILABLE"}
+        # self.types = {0:"BLANK", 1:"RED", -1:"BLACK", 2:"SPACE", 3:"SELECTED", 4:"AVAILABLE", 5:"RED_KING", 6:"BLACK_KING"}
 
     def populate_board(self):
         flat = [0]*64
-        # Normal:
         if self.current_turn == 1: black, red, extra = [1, 3, 5, 7, 8, 10, 12, 14, 17, 19, 21, 23], [40, 42, 44, 46, 49, 51, 53, 55, 56, 58, 60, 62], [24, 26, 28, 30, 33, 35, 37, 39]
         elif self.current_turn == -1: red, black, extra = [1, 3, 5, 7, 8, 10, 12, 14, 17, 19, 21, 23], [40, 42, 44, 46, 49, 51, 53, 55, 56, 58, 60, 62], [24, 26, 28, 30, 33, 35, 37, 39]
-
-        # Testing:
-        # if self.current_turn == 1: black, red, extra = [1, 5, 7, 8, 12, 17, 28, 21, 30, 37], [10, 26, 40, 42, 44, 46, 51, 55, 56, 58, 60, 62], [3, 14, 24, 19, 30, 33, 35, 39, 49, 53, 23]
-        # elif self.current_turn == -1: red, black, extra = [1, 3, 5, 7, 8, 12, 17, 28, 21, 30, 37], [26, 40, 42, 44, 46, 51, 55, 56, 58, 60, 62], [10, 14, 24, 19, 30, 33, 35, 39, 49, 53, 23]
 
         for i,v in enumerate(flat):
             if i in black: flat[i] = -1
@@ -41,8 +36,7 @@ class Game(object):
             elif i in extra: flat[i] = 2
             else: flat[i] = 0
 
-        flat = np.reshape(flat, (8,8))
-        return flat
+        return np.reshape(flat, (8,8))
 
     def play_random(self, piece):
         random_move = random.choice(self.get_available_pieces(piece))
@@ -135,21 +129,14 @@ class Game(object):
         if len(jumped_pieces) > 0:
             for i in jumped_pieces:
                 self.board[i[0]][i[1]] = 2
-                if self.current_turn == 1: self.red_score += 1
-                elif self.current_turn == -1: self.black_score += 1
+                self.increase_score()
+                self.increase_moves()
                 self.check_winner()
+        else:
+            self.increase_moves()
 
         self.board[start_r][start_c] = 2
-
-        if self.starting_color == 1:
-            if self.current_turn == 1 and end_r == 0: self.board[end_r][end_c] = 5
-            elif self.current_turn == -1 and end_r == 7: self.board[end_r][end_c] = 6
-            else: self.board[end_r][end_c] = self.previous
-        elif self.starting_color == -1:
-            if self.current_turn == -1 and end_r == 0: self.board[end_r][end_c] = 5
-            elif self.current_turn == 1 and end_r == 7: self.board[end_r][end_c] = 6
-            else: self.board[end_r][end_c] = self.previous
-
+        self.king_piece(start_r, start_c, end_r, end_c)
         time.sleep(self.delay)
 
     def valid_placement(self, cursor):
@@ -239,6 +226,33 @@ class Game(object):
     def check_bounds(self, bound1, bound2):
         return True if bound1 in [-1,8] or bound2 in [-1, 8] else False
 
+    def increase_score(self):
+        if self.current_turn == 1: self.red_score += 1
+        elif self.current_turn == -1: self.black_score += 1
+
+    def increase_moves(self):
+        if self.current_turn == 1: self.red_moves += 1
+        elif self.current_turn == -1: self.black_moves += 1
+
+    def king_piece(self, start_r, start_c, end_r, end_c):
+        # Very annoying and long
+        if self.starting_color == 1:
+            if self.current_turn == 1 and end_r == 0:
+                self.board[end_r][end_c] = 5
+                if self.board[start_r][start_c] != 5: self.red_kings += 1
+            elif self.current_turn == -1 and end_r == 7:
+                self.board[end_r][end_c] = 6
+                if self.board[start_r][start_c] != 6: self.black_kings += 1
+            else: self.board[end_r][end_c] = self.previous
+        elif self.starting_color == -1:
+            if self.current_turn == -1 and end_r == 0:
+                self.board[end_r][end_c] = 6
+                if self.board[start_r][start_c] != 6: self.black_kings += 1
+            elif self.current_turn == 1 and end_r == 7:
+                self.board[end_r][end_c] = 5
+                if self.board[start_r][start_c] != 5: self.red_kings += 1
+            else: self.board[end_r][end_c] = self.previous
+
     def draw_board(self, cursor=[5,0], turn=1, winning_pieces=None):
         os.system('clear')
         if not self.winner: print("\n RED: {} | BLACK: {}\n".format(self.red_score, self.black_score))
@@ -270,11 +284,17 @@ class Game(object):
             print()
 
         if not self.winner:
-            print("\n TURN: {}\n LAST: {}".format(self.turns[self.current_turn].format(self.color), self.moves[-1]))
-            # print(" RED_SCORE: {}\n BLACK_SCORE: {}".format(self.red_score, self.black_score))
+            print("\n TURN: {}".format(self.turns[self.current_turn].format(self.color)))
+            # print(" LAST: {}".format(self.moves[-1]))
             print("\n ⭠ ⭡⭣ ⭢  to move.\n SPACE to select.\n BACKSPACE to deselect.\n CTRL+C to exit.\n")
         else:
             self.remove_available_moves()
             print("\n       WINNER: {}\n".format(self.turns[self.winner].format(self.color)))
-            print(" RED_SCORE: {}\n BLACK_SCORE: {}".format(self.red_score, self.black_score))
+            if self.show_extra:
+                print(" -----SCORE-----")
+                print(" RED: {}, BLACK: {}".format(self.red_score, self.black_score))
+                print("\n -----MOVES-----")
+                print(" TOTAL: {}\n RED: {}, BLACK: {}".format(len(self.moves), self.red_moves, self.black_moves))
+                print("\n -----KINGS-----")
+                print(" RED: {}, BLACK: {}\n".format(self.red_kings, self.black_kings))
             sys.exit()
