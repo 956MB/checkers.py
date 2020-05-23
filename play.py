@@ -12,25 +12,22 @@ def play_console():
     try:
         while True:
             k = getkey()
-            if k == 'left':
-                cursor = checkers.check_next_col_row(cursor, "left")
+            if k == 'up':
+                cursor = checkers.check_next_col_row(cursor, "up")
                 checkers.draw_board(cursor, turn)
-
             elif k == 'right':
                 cursor = checkers.check_next_col_row(cursor, "right")
                 checkers.draw_board(cursor, turn)
-            
-            elif k == 'up':
-                cursor = checkers.check_next_col_row(cursor, "up")
-                checkers.draw_board(cursor, turn)
-
             elif k == 'down':
                 cursor = checkers.check_next_col_row(cursor, "down")
                 checkers.draw_board(cursor, turn)
-
+            elif k == 'left':
+                cursor = checkers.check_next_col_row(cursor, "left")
+                checkers.draw_board(cursor, turn)
             elif k == 'space':
                 if checkers.previous:
                     valid = checkers.move_selected(cursor, turn)
+
                     if valid:
                         turn = -1 if turn == 1 else 1
                         checkers.change_turn(turn)
@@ -80,10 +77,12 @@ def getkey():
     finally: termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Play Checkers in the terminal. Written in Python.")
     opt = ap._action_groups.pop()
     req = ap.add_argument_group('required arguments')
+    opt.add_argument("-V","--version",action="store_true",help="show script version")
     opt.add_argument("-r","--random",action="store_true",help="play against random moves")
+    opt.add_argument("-e","--extra",action="store_true",help="show extra game info after win")
     opt.add_argument("-s","--sim",action="store_true",help="simulate random moves game")
     opt.add_argument("-d","--delay",type=float,help="delay between moves played in simulated game")
     opt.add_argument("-c","--color",const=1,type=int,choices=[42, 43, 44, 45, 46, 47],nargs="?",help="choose to select one color for the style of game, instead of random on load")
@@ -92,16 +91,18 @@ if __name__ == '__main__':
     ap._action_groups.append(opt)
     args = vars(ap.parse_args())
 
-    mode, sep, play_random, color, delay, _sim = False, " ", False, 44, .15, False
+    mode, sep, play_random, color, delay, _sim, show_extra = False, " ", False, 44, .15, False, False
     show_moves, next_random = 32, False
     cursor, turn = [7,0], random.choice([1, -1])
     match_colors = {43:33, 44:34, 45:35, 46:36, 47:37}
+    if args["version"]: sys.exit("v1.0.0")
     if args["random"]: play_random = True
     if args["color"]: color = args["color"]
     if args["moves"]: show_moves = match_colors[color]
     if args["sim"]: delay, _sim = 0, True
     if args["delay"]: delay = args["delay"]
+    if args["extra"]: show_extra = True
 
-    checkers = Game(mode=mode, starter=turn, color=color, show=show_moves, delay=delay)
+    checkers = Game(mode=mode, starter=turn, color=color, show=show_moves, delay=delay, show_extra=show_extra)
     if _sim: sim()
     else: play_console()
