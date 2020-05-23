@@ -32,3 +32,11 @@
 
 #       X Bug with cross paths: if you click move in the middle of a cross, it will select the two piece move instead of the one piece move you selected (i guess kind of a good thing, sine it doesnt allow you to miss two points, but still, it should allow you to make the move you want, if you miss it, its your fault.)
 #       - Sometimes when simulating game, an indexerror will be raised because there are no available moves, which is wrong. I dont know why or which piece, but looking at the board, theres definetly options for pieces to move. - scratch that, its probably because of the random moves. sometimes it can randomly pick the worst moves and get the board stuck where no piece can move. BUT, sometimes it looks like theres plenty of open space more moves to be made, but it doesnt, i don know dude. Also, sometimes a game will end saying one player has 12 score, but there are still enemy piece on the board, i dont know why.
+
+#       X Bug when black starts and is on bottom. When black gets a piece kinged at the top, it is kinged as a red piece. Fixed with simple swap from setting 5 to 6
+#       - Notice unintended bug with jumps: 'get_available_moves' lets a regular non kinged piece jump a kinged piece of its own color.
+
+
+# NOTE: Starting piece positions for testing:
+# if self.current_turn == 1: black, red, extra = [1, 5, 7, 8, 12, 17, 28, 21, 30, 37], [10, 26, 40, 42, 44, 46, 51, 55, 56, 58, 60, 62], [3, 14, 24, 19, 30, 33, 35, 39, 49, 53, 23]
+# elif self.current_turn == -1: red, black, extra = [1, 3, 5, 7, 8, 12, 17, 28, 21, 30, 37], [26, 40, 42, 44, 46, 51, 55, 56, 58, 60, 62], [10, 14, 24, 19, 30, 33, 35, 39, 49, 53, 23]
