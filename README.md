@@ -1,21 +1,21 @@
 # checkers.py
 
-[Board games collection repo](https://github.com/Bloumbs/board-games)
+[Board games collection repo](https://github.com/956MB/board-games)
 
-USAGE:
+Usage:
 
 ```shell
-$ ./play.py -r -c 44      # Play against random moves with board color blue.
+$ ./checkers.py -r -c 44      # Play against random moves with board color blue.
 
-$ ./play.py -r -m         # Play against random moves with random board color, and disable showing available moves.
+$ ./checkers.py -r -m         # Play against random moves with random board color, and disable showing available moves.
 
-$ ./play.py -d .1 -s      # Simulate random moves game with delay of .1, and random board color.
+$ ./checkers.py -d .1 -s      # Simulate random moves game with delay of .1, and random board color.
 ```
 
-```
-$ ./play.py -h
+```shell
+$ ./checkers.py -h
 
-usage: play.py [-h] [-V] [-r] [-e] [-s] [-d DELAY] [-c [{42,43,44,45,46,47}]]
+usage: checkers.py [-h] [-V] [-r] [-e] [-s] [-d DELAY] [-c [{42,43,44,45,46,47}]]
                [-l] [-m]
 
 Play Checkers in the terminal. Written in Python.
@@ -37,8 +37,8 @@ optional arguments:
 
 # LOOKS:
 
-<img src="images/blue.png" width="434"/> <img src="images/yellow.png" width="434"/>
+<img src="screenshots/blue.png" width="434"/> <img src="screenshots/yellow.png" width="434"/>
 
-<img src="images/green.png" width="434"/> <img src="images/purple.png" width="434"/>
+<img src="screenshots/green.png" width="434"/> <img src="screenshots/purple.png" width="434"/>
 
-<img src="images/cyan.png" width="434"/> <img src="images/lightgrey.png" width="434"/>
+<img src="screenshots/cyan.png" width="434"/> <img src="screenshots/lightgrey.png" width="434"/>

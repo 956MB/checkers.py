@@ -1,17 +1,22 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*- 
 from __future__ import print_function
 import numpy as np
-import os, csv, sys, random, time
-# from timer import Timer
+import os, csv, sys, random, time, string
+import shutil
+import os, termios, tty
+import argparse
+from time import sleep
 
 # I think plenty of things in here can be redone to be a bit simpler and more streamlined, but it all pretty much works atm, and that was the initial goal. Overall, it's a pretty good start. It is Python, after all.
 # Comments should probably be put in eventually as a well. It gets a bit confusing in parts.
 
-class Game(object):
+class Checkers(object):
     def __init__(self, mode=True, starter=1, color=44, show=32, delay=0, show_extra=False):
         self.delay, self.starting_color, self.show_extra = delay, starter, show_extra
         self.moves, self.aval_moves, self.current_move, self.current_turn = [[]], [], [], starter
         self.red_score, self.black_score, self.red_moves, self.black_moves, self.red_kings, self.black_kings = 0, 0, 0, 0, 0, 0
+        self.state_count = 0
         self.previous, self.color, self.show_moves = [], color, show
         self.swap, self.winner = True, False
         self.board = self.populate_board()
@@ -56,6 +61,7 @@ class Game(object):
             for col_idx, item in enumerate(row):
                 if item in turn:
                     moves = self.get_available_moves([row_idx, col_idx])
+                    self.state_count += len(moves) + 1
                     if len(moves) > 0: pieces.append([[row_idx, col_idx], moves])
                     self.remove_available_moves()
                     
@@ -294,7 +300,114 @@ class Game(object):
                 print(" -----SCORE-----")
                 print(" RED: {}, BLACK: {}".format(self.red_score, self.black_score))
                 print("\n -----MOVES-----")
-                print(" TOTAL: {}\n RED: {}, BLACK: {}".format(len(self.moves), self.red_moves, self.black_moves))
+                print(" TOTAL: {}\n RED: {}, BLACK: {}\n STATES: {}".format(len(self.moves), self.red_moves, self.black_moves, self.state_count))
                 print("\n -----KINGS-----")
                 print(" RED: {}, BLACK: {}\n".format(self.red_kings, self.black_kings))
             sys.exit()
+
+
+def play_console():
+    global cursor,turn
+
+    checkers.draw_board(cursor, turn)
+    try:
+        while True:
+            k = getkey()
+            if k == 'up':
+                cursor = checkers.check_next_col_row(cursor, "up")
+                checkers.draw_board(cursor, turn)
+            elif k == 'right':
+                cursor = checkers.check_next_col_row(cursor, "right")
+                checkers.draw_board(cursor, turn)
+            elif k == 'down':
+                cursor = checkers.check_next_col_row(cursor, "down")
+                checkers.draw_board(cursor, turn)
+            elif k == 'left':
+                cursor = checkers.check_next_col_row(cursor, "left")
+                checkers.draw_board(cursor, turn)
+            elif k == 'space':
+                if checkers.previous:
+                    valid = checkers.move_selected(cursor, turn)
+
+                    if valid:
+                        turn = -1 if turn == 1 else 1
+                        checkers.change_turn(turn)
+                        checkers.draw_board(cursor, turn)
+
+                        if play_random:
+                            checkers.play_random(turn)
+                            turn = -1 if turn == 1 else 1
+                            checkers.change_turn(turn)
+                            checkers.draw_board(cursor, turn)
+                    else:
+                        print('invalid move selected!')
+                        checkers.remove_selected()
+                        checkers.draw_board(cursor, turn)
+                else:
+                    checkers.set_selected(cursor, turn)
+                    checkers.draw_board(cursor, turn)
+
+            elif k in ['backspace', 'esc']:
+                if len(checkers.aval_moves) > 0:
+                    checkers.remove_selected()
+                    checkers.draw_board(cursor, turn)
+
+    except (KeyboardInterrupt, SystemExit):
+        os.system('stty sane')
+        sys.exit()
+
+def sim():
+    global cursor,turn
+
+    while True:
+        checkers.play_random(turn)
+        turn = -1 if turn == 1 else 1
+        checkers.change_turn(turn)
+        checkers.draw_board(cursor, turn)
+        sleep(delay)
+
+def getkey():
+    old_settings = termios.tcgetattr(sys.stdin)
+    tty.setcbreak(sys.stdin.fileno())
+    try:
+        while True:
+            b = os.read(sys.stdin.fileno(), 3).decode()
+            if len(b) == 3: k = ord(b[2])
+            else: k = ord(b)
+
+            key_mapping = { 27:'esc', 32:'space', 68:'left', 67:'right', 66:'down', 65:'up', 127:'backspace' }
+            return key_mapping.get(k, chr(k))
+
+    except Exception: sys.exit()
+    finally: termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser(description="Play Checkers in the terminal. Written in Python.")
+    opt = ap._action_groups.pop()
+    req = ap.add_argument_group('required arguments')
+    opt.add_argument("-V","--version",action="store_true",help="show script version")
+    opt.add_argument("-r","--random",action="store_true",help="play against random moves")
+    opt.add_argument("-e","--extra",action="store_true",help="show extra game info after win")
+    opt.add_argument("-s","--sim",action="store_true",help="simulate random moves game")
+    opt.add_argument("-d","--delay",type=float,help="delay between moves played in simulated game")
+    opt.add_argument("-c","--color",const=1,type=int,choices=[42, 43, 44, 45, 46, 47],nargs="?",help="choose to select one color for the style of game, instead of random on load")
+    opt.add_argument("-l","--log",action="store_true",help="disable logging of games to logs/ for highscore")
+    opt.add_argument("-m","--moves",action="store_true",help="disable showing of available moves in game")
+    ap._action_groups.append(opt)
+    args = vars(ap.parse_args())
+
+    mode, sep, play_random, color, delay, _sim, show_extra = False, " ", False, 44, .15, False, False
+    show_moves, next_random = 32, False
+    cursor, turn = [7,0], random.choice([1, -1])
+    match_colors = {43:33, 44:34, 45:35, 46:36, 47:37}
+    if args["version"]: sys.exit("v1.0.0")
+    if args["random"]: play_random = True
+    if args["color"]: color = args["color"]
+    if args["moves"]: show_moves = match_colors[color]
+    if args["sim"]: delay, _sim = 0, True
+    if args["delay"]: delay = args["delay"]
+    if args["extra"]: show_extra = True
+
+    checkers = Checkers(mode=mode, starter=turn, color=color, show=show_moves, delay=delay, show_extra=show_extra)
+    if _sim: sim()
+    else: play_console()

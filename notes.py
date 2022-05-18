@@ -21,6 +21,7 @@
 #       X Add arg 'play_random' to play random moves
 #       X Add last move displayed for debugging
 #       X Add winner check
+#       - Random todo: count all available pieces to move as well as all available moves on selected piece and see how high these numbers can be for different states of the game.
 
 # NOTE: Playing random moves SORT OF works atm. Sometimes the random move will block a capture, but then the available moves will dwindle. It can eventually block all paths and run out of moves. Sort of avoidable if you play aggressive and force it to move down the board. Not perfect OFC!
 
