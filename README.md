@@ -2,6 +2,17 @@
 
 [Board games collection repo](https://github.com/956MB/board-games)
 
+```shell
+.  ○  .  ○  .  ○  .  ○ 
+○  .  ○  .  .  .  ○  . 
+.  ●  .  ○  .  .  .  . 
+.  .  .  .  .  .  ○  . 
+.  .  ○  ○  .  ●  .  . 
+●  .  .  .  .  .  .  . 
+.  ●  .  .  .  ●  .  ● 
+●  .  ●  .  ●  .  ●  . 
+```
+
 Usage:
 
 ```shell

@@ -378,7 +378,9 @@ def getkey():
             key_mapping = { 27:'esc', 32:'space', 68:'left', 67:'right', 66:'down', 65:'up', 127:'backspace' }
             return key_mapping.get(k, chr(k))
 
-    except Exception: sys.exit()
+    except (KeyboardInterrupt, SystemExit):
+        os.system('stty sane')
+        sys.exit()
     finally: termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
 if __name__ == '__main__':
